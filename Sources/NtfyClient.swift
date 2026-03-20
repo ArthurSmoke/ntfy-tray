@@ -40,7 +40,7 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
         delegateQueue.name = "com.ntfytray.websocket"
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
-        config.timeoutIntervalForResource = 600
+        config.timeoutIntervalForResource = 0
         config.waitsForConnectivity = true
         urlSession = URLSession(configuration: config, delegate: self, delegateQueue: delegateQueue)
     }
