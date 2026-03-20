@@ -243,6 +243,7 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
         logger.log("WebSocket opened with protocol: \(`protocol` ?? "none")")
         DispatchQueue.main.async { [weak self] in
             self?.isConnected = true
+            self?.isConnecting = false
             self?.connectionError = nil
         }
     }
