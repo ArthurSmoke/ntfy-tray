@@ -25,13 +25,25 @@ jobs:
         mkdir -p NtfyTray.app/Contents/MacOS
         mkdir -p NtfyTray.app/Contents/Resources
         
-        # Build universal binary (arm64 + x86_64)
+        # Build for ARM64
         swiftc Sources/*.swift Sources/Views/*.swift \
-          -o NtfyTray.app/Contents/MacOS/NtfyTray \
+          -o NtfyTray-arm64 \
           -framework SwiftUI \
           -framework UserNotifications \
           -framework AppKit \
           -target arm64-apple-macosx12.0
+        
+        # Build for x86_64
+        swiftc Sources/*.swift Sources/Views/*.swift \
+          -o NtfyTray-x86_64 \
+          -framework SwiftUI \
+          -framework UserNotifications \
+          -framework AppKit \
+          -target x86_64-apple-macosx12.0
+        
+        # Create universal binary
+        lipo -create NtfyTray-arm64 NtfyTray-x86_64 -output NtfyTray.app/Contents/MacOS/NtfyTray
+        rm NtfyTray-arm64 NtfyTray-x86_64
         
         cp Info.plist NtfyTray.app/Contents/
         cp ntfy.icns NtfyTray.app/Contents/Resources/AppIcon.icns
