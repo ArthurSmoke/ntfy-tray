@@ -1,0 +1,20 @@
+# Build artifacts
+NtfyTray
+NtfyTray.app/
+*.dmg
+*.zip
+
+# macOS metadata
+.DS_Store
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Logs
+*.log
