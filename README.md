@@ -1,5 +1,7 @@
 # Ntfy Tray
 
+AI wrote this application.
+
 A native macOS menu bar application for receiving notifications from [ntfy](https://ntfy.sh) servers.
 
 ![macOS](https://img.shields.io/badge/macOS-12%2B-blue)
@@ -71,31 +73,6 @@ cp AppIcon.icns NtfyTray.app/Contents/Resources/
 chmod +x NtfyTray.app/Contents/MacOS/NtfyTray
 ```
 
-### Option 3: Using GitHub Actions
-
-This repository includes a GitHub Actions workflow that automatically builds the app.
-
-#### Automatic Builds
-- Every push to `main` or `develop` branches triggers a build
-- Pull requests to `main` trigger builds
-
-#### Manual Build
-1. Go to the **Actions** tab in your repository
-2. Select **Build macOS App** workflow
-3. Click **Run workflow**
-4. Select the branch and click **Run workflow**
-5. Wait for the build to complete
-6. Download the artifact containing `NtfyTray.dmg`
-
-#### Creating a Release
-1. Create and push a tag:
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-2. The workflow will automatically create a draft release with the DMG file
-3. Go to the Releases page to publish the release
-
 ## Configuration
 
 1. Click the **bell icon** in the menu bar
@@ -158,8 +135,6 @@ ntfy-tray/
 ├── Package.swift              # Swift Package Manager config
 ├── Info.plist                 # macOS app metadata
 ├── icon.svg                   # App icon (SVG source)
-├── scripts/
-│   └── generate-icon.sh      # Icon generation script
 ├── .github/
 │   └── workflows/
 │       └── build.yml         # GitHub Actions workflow
