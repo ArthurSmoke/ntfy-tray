@@ -35,6 +35,7 @@ jobs:
           -framework SwiftUI \
           -framework UserNotifications \
           -framework AppKit \
+          -framework ServiceManagement \
           -target arm64-apple-macosx12.0
         
         # Build for x86_64
@@ -43,6 +44,7 @@ jobs:
           -framework SwiftUI \
           -framework UserNotifications \
           -framework AppKit \
+          -framework ServiceManagement \
           -target x86_64-apple-macosx12.0
         
         # Create universal binary
@@ -52,6 +54,13 @@ jobs:
         cp Info.plist NtfyTray.app/Contents/
         cp ntfy.icns NtfyTray.app/Contents/Resources/AppIcon.icns
         chmod +x NtfyTray.app/Contents/MacOS/NtfyTray
+        
+    - name: Sign app with entitlements
+      run: |
+        # Sign the app with ad-hoc signature and entitlements
+        codesign --force --deep --sign - \
+          --entitlements NtfyTray.entitlements \
+          NtfyTray.app
         
     - name: Create DMG
       run: |
