@@ -1,7 +1,7 @@
 import SwiftUI
 import Combine
 
-class StatusBarController: ObservableObject {
+class StatusBarController: NSObject, ObservableObject, NSPopoverDelegate {
     private var statusItem: NSStatusItem
     private var popover: NSPopover
     private var cancellables = Set<AnyCancellable>()
@@ -9,9 +9,11 @@ class StatusBarController: ObservableObject {
     private let settingsManager = SettingsManager.shared
     private let ntfyClient = NtfyClient.shared
     
-    init() {
+    override init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         popover = NSPopover()
+        
+        super.init()
         
         setupMenuBar()
         setupPopover()
@@ -34,6 +36,7 @@ class StatusBarController: ObservableObject {
     private func setupPopover() {
         popover.contentSize = NSSize(width: 320, height: 400)
         popover.behavior = .transient
+        popover.delegate = self
         popover.contentViewController = NSHostingController(
             rootView: NotificationListView()
                 .environmentObject(settingsManager)
@@ -81,20 +84,14 @@ class StatusBarController: ObservableObject {
     
     private func updateBadgeCount(count: Int) {
         guard settingsManager.showBadgeCount else {
-            statusItem.length = NSStatusItem.squareLength
             statusItem.button?.title = ""
-            updateMenuIcon(connected: ntfyClient.isConnected)
             return
         }
         
         if count > 0 {
-            statusItem.length = NSStatusItem.variableLength
-            statusItem.button?.image = nil
-            statusItem.button?.title = "\(count)"
+            statusItem.button?.title = " \(count)"
         } else {
-            statusItem.length = NSStatusItem.squareLength
             statusItem.button?.title = ""
-            updateMenuIcon(connected: ntfyClient.isConnected)
         }
     }
     
@@ -102,8 +99,11 @@ class StatusBarController: ObservableObject {
         if popover.isShown {
             popover.performClose(sender)
         } else if let button = statusItem.button {
-            ntfyClient.messages.removeAll()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
         }
+    }
+    
+    func popoverDidClose(_ notification: Notification) {
+        ntfyClient.messages.removeAll()
     }
 }
