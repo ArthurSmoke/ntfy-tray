@@ -3,14 +3,10 @@ import SwiftUI
 @main
 struct NtfyTrayApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject private var settingsManager = SettingsManager.shared
-    @StateObject private var ntfyClient = NtfyClient.shared
     
     var body: some Scene {
         Settings {
-            SettingsView()
-                .environmentObject(settingsManager)
-                .environmentObject(ntfyClient)
+            EmptyView()
         }
     }
 }

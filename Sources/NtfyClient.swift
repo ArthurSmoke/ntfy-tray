@@ -11,13 +11,23 @@ struct NtfyMessage: Codable, Identifiable {
     let tags: [String]?
     let priority: Int?
     let click: String?
+    var isRead: Bool = false
+    
+    enum CodingKeys: String, CodingKey {
+        case id, time, event, topic, message, title, tags, priority, click
+    }
 }
 
 class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
     static let shared = NtfyClient()
     
     @Published var isConnected = false
-    @Published var messages: [NtfyMessage] = []
+    @Published var messages: [NtfyMessage] = [] {
+        didSet {
+            unreadCount = messages.filter { !$0.isRead }.count
+        }
+    }
+    @Published var unreadCount: Int = 0
     @Published var connectionError: String?
     
     private var webSocketTask: URLSessionWebSocketTask?
@@ -274,5 +284,21 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
         } else {
             logger.log("WebSocket task completed without error")
         }
+    }
+    
+    func markAsRead(_ message: NtfyMessage) {
+        if let index = messages.firstIndex(where: { $0.id == message.id }) {
+            var updatedMessages = messages
+            updatedMessages[index].isRead = true
+            messages = updatedMessages
+        }
+    }
+    
+    func markAllAsRead() {
+        var updatedMessages = messages
+        for index in updatedMessages.indices {
+            updatedMessages[index].isRead = true
+        }
+        messages = updatedMessages
     }
 }

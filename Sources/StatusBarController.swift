@@ -1,22 +1,20 @@
 import SwiftUI
 import Combine
 
-class StatusBarController: NSObject, ObservableObject, NSPopoverDelegate {
+class StatusBarController: NSObject, ObservableObject {
     private var statusItem: NSStatusItem
-    private var popover: NSPopover
     private var cancellables = Set<AnyCancellable>()
     
     private let settingsManager = SettingsManager.shared
     private let ntfyClient = NtfyClient.shared
+    private let unifiedWindowManager = UnifiedWindowManager.shared
     
     override init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        popover = NSPopover()
         
         super.init()
         
         setupMenuBar()
-        setupPopover()
         observeConnectionStatus()
         observeSettingsChanges()
         
@@ -28,29 +26,8 @@ class StatusBarController: NSObject, ObservableObject, NSPopoverDelegate {
     private func setupMenuBar() {
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "bell", accessibilityDescription: "Ntfy Tray")
-            button.action = #selector(togglePopover(_:))
+            button.action = #selector(toggleWindow(_:))
             button.target = self
-        }
-    }
-    
-    private func setupPopover() {
-        popover.contentSize = NSSize(width: 320, height: 400)
-        popover.behavior = .applicationDefined
-        popover.delegate = self
-        popover.contentViewController = NSHostingController(
-            rootView: NotificationListView()
-                .environmentObject(settingsManager)
-                .environmentObject(ntfyClient)
-        )
-        
-        NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
-            if let self = self, self.popover.isShown {
-                if let popoverWindow = self.popover.contentViewController?.view.window,
-                   !popoverWindow.frame.contains(event.locationInWindow) {
-                    self.popover.performClose(nil)
-                }
-            }
-            return event
         }
     }
     
@@ -62,10 +39,10 @@ class StatusBarController: NSObject, ObservableObject, NSPopoverDelegate {
             }
             .store(in: &cancellables)
         
-        ntfyClient.$messages
+        ntfyClient.$unreadCount
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] messages in
-                self?.updateBadgeCount(count: messages.count)
+            .sink { [weak self] count in
+                self?.updateBadgeCount(count: count)
             }
             .store(in: &cancellables)
     }
@@ -95,28 +72,30 @@ class StatusBarController: NSObject, ObservableObject, NSPopoverDelegate {
     private func updateBadgeCount(count: Int) {
         guard settingsManager.showBadgeCount else {
             statusItem.length = NSStatusItem.variableLength
-            statusItem.button?.title = ""
+            statusItem.button?.image = NSImage(systemSymbolName: "bell", accessibilityDescription: "Ntfy Tray")
+            statusItem.button?.attributedTitle = NSAttributedString()
             return
         }
         
         if count > 0 {
             statusItem.length = NSStatusItem.variableLength
-            statusItem.button?.title = " \(count)"
+            statusItem.button?.image = nil
+            
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: 12, weight: .medium),
+                .foregroundColor: NSColor.white,
+                .backgroundColor: NSColor.black
+            ]
+            let attributedString = NSAttributedString(string: " \(count) ", attributes: attributes)
+            statusItem.button?.attributedTitle = attributedString
         } else {
             statusItem.length = NSStatusItem.variableLength
-            statusItem.button?.title = ""
+            statusItem.button?.image = NSImage(systemSymbolName: "bell", accessibilityDescription: "Ntfy Tray")
+            statusItem.button?.attributedTitle = NSAttributedString()
         }
     }
     
-    @objc private func togglePopover(_ sender: AnyObject?) {
-        if popover.isShown {
-            popover.performClose(sender)
-        } else if let button = statusItem.button {
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
-        }
-    }
-    
-    func popoverDidClose(_ notification: Notification) {
-        ntfyClient.messages.removeAll()
+    @objc private func toggleWindow(_ sender: AnyObject?) {
+        unifiedWindowManager.toggle()
     }
 }
