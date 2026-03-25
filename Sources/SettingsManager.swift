@@ -1,6 +1,5 @@
 import Foundation
 import Combine
-import ServiceManagement
 
 class SettingsManager: ObservableObject {
     static let shared = SettingsManager()
@@ -23,13 +22,6 @@ class SettingsManager: ObservableObject {
     
     @Published var useAuth: Bool {
         didSet { save() }
-    }
-    
-    @Published var launchAtLogin: Bool {
-        didSet { 
-            save()
-            updateLaunchAtLogin()
-        }
     }
     
     @Published var showBadgeCount: Bool {
@@ -61,7 +53,6 @@ class SettingsManager: ObservableObject {
         var username: String
         var password: String
         var useAuth: Bool
-        var launchAtLogin: Bool
         var showBadgeCount: Bool
         var autoReconnect: Bool
         var soundEnabled: Bool
@@ -74,7 +65,6 @@ class SettingsManager: ObservableObject {
         self.username = data.username
         self.password = data.password
         self.useAuth = data.useAuth
-        self.launchAtLogin = data.launchAtLogin
         self.showBadgeCount = data.showBadgeCount
         self.autoReconnect = data.autoReconnect
         self.soundEnabled = data.soundEnabled
@@ -97,7 +87,6 @@ class SettingsManager: ObservableObject {
             username: "",
             password: "",
             useAuth: false,
-            launchAtLogin: false,
             showBadgeCount: true,
             autoReconnect: true,
             soundEnabled: true
@@ -111,7 +100,6 @@ class SettingsManager: ObservableObject {
             username: username,
             password: password,
             useAuth: useAuth,
-            launchAtLogin: launchAtLogin,
             showBadgeCount: showBadgeCount,
             autoReconnect: autoReconnect,
             soundEnabled: soundEnabled
@@ -156,23 +144,9 @@ class SettingsManager: ObservableObject {
         username = ""
         password = ""
         useAuth = false
-        launchAtLogin = false
         showBadgeCount = true
         autoReconnect = true
         soundEnabled = true
     }
     
-    private func updateLaunchAtLogin() {
-        if #available(macOS 13.0, *) {
-            do {
-                if launchAtLogin {
-                    try SMAppService.mainApp.register()
-                } else {
-                    try SMAppService.mainApp.unregister()
-                }
-            } catch {
-                Logger.shared.log("Failed to update launch at login: \(error)")
-            }
-        }
-    }
 }

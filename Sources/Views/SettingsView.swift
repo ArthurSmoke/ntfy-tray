@@ -415,21 +415,6 @@ struct SettingsView: View {
             
             Divider()
             
-            Toggle(isOn: $settingsManager.launchAtLogin) {
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Image(systemName: "power")
-                            .foregroundColor(.secondary)
-                        Text("Launch at Login")
-                    }
-                    Text("Start Ntfy Tray when you log in")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            Divider()
-            
             Button(action: resetSettings) {
                 HStack {
                     Image(systemName: "arrow.counterclockwise")
