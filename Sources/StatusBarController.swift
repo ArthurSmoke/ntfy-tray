@@ -35,13 +35,23 @@ class StatusBarController: NSObject, ObservableObject, NSPopoverDelegate {
     
     private func setupPopover() {
         popover.contentSize = NSSize(width: 320, height: 400)
-        popover.behavior = .transient
+        popover.behavior = .applicationDefined
         popover.delegate = self
         popover.contentViewController = NSHostingController(
             rootView: NotificationListView()
                 .environmentObject(settingsManager)
                 .environmentObject(ntfyClient)
         )
+        
+        NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            if let self = self, self.popover.isShown {
+                if let popoverWindow = self.popover.contentViewController?.view.window,
+                   !popoverWindow.frame.contains(event.locationInWindow) {
+                    self.popover.performClose(nil)
+                }
+            }
+            return event
+        }
     }
     
     private func observeConnectionStatus() {
@@ -84,7 +94,7 @@ class StatusBarController: NSObject, ObservableObject, NSPopoverDelegate {
     
     private func updateBadgeCount(count: Int) {
         guard settingsManager.showBadgeCount else {
-            statusItem.length = NSStatusItem.squareLength
+            statusItem.length = NSStatusItem.variableLength
             statusItem.button?.title = ""
             return
         }
@@ -93,7 +103,7 @@ class StatusBarController: NSObject, ObservableObject, NSPopoverDelegate {
             statusItem.length = NSStatusItem.variableLength
             statusItem.button?.title = " \(count)"
         } else {
-            statusItem.length = NSStatusItem.squareLength
+            statusItem.length = NSStatusItem.variableLength
             statusItem.button?.title = ""
         }
     }
