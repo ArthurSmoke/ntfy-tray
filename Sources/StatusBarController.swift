@@ -83,15 +83,18 @@ class StatusBarController: ObservableObject {
         guard settingsManager.showBadgeCount else {
             statusItem.length = NSStatusItem.squareLength
             statusItem.button?.title = ""
+            updateMenuIcon(connected: ntfyClient.isConnected)
             return
         }
         
         if count > 0 {
             statusItem.length = NSStatusItem.variableLength
-            statusItem.button?.title = " \(count)"
+            statusItem.button?.image = nil
+            statusItem.button?.title = "\(count)"
         } else {
             statusItem.length = NSStatusItem.squareLength
             statusItem.button?.title = ""
+            updateMenuIcon(connected: ntfyClient.isConnected)
         }
     }
     
