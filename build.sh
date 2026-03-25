@@ -19,6 +19,8 @@ cp ntfy.icns NtfyTray.app/Contents/Resources/AppIcon.icns
 
 chmod +x NtfyTray.app/Contents/MacOS/NtfyTray
 
-codesign --force --deep --sign - NtfyTray.app
+codesign --force --deep --sign - \
+  --entitlements NtfyTray.entitlements \
+  NtfyTray.app
 
 echo "构建完成: NtfyTray.app"
