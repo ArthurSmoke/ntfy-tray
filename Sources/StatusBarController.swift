@@ -84,13 +84,16 @@ class StatusBarController: NSObject, ObservableObject, NSPopoverDelegate {
     
     private func updateBadgeCount(count: Int) {
         guard settingsManager.showBadgeCount else {
+            statusItem.length = NSStatusItem.squareLength
             statusItem.button?.title = ""
             return
         }
         
         if count > 0 {
+            statusItem.length = NSStatusItem.variableLength
             statusItem.button?.title = " \(count)"
         } else {
+            statusItem.length = NSStatusItem.squareLength
             statusItem.button?.title = ""
         }
     }
