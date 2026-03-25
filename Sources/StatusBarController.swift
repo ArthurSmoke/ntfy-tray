@@ -51,8 +51,8 @@ class StatusBarController: ObservableObject {
         
         ntfyClient.$messages
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.updateBadgeCount()
+            .sink { [weak self] messages in
+                self?.updateBadgeCount(count: messages.count)
             }
             .store(in: &cancellables)
     }
@@ -79,17 +79,16 @@ class StatusBarController: ObservableObject {
         }
     }
     
-    private func updateBadgeCount() {
+    private func updateBadgeCount(count: Int) {
         guard settingsManager.showBadgeCount else {
             statusItem.length = NSStatusItem.squareLength
             statusItem.button?.title = ""
             return
         }
         
-        let unreadCount = ntfyClient.messages.count
-        if unreadCount > 0 {
+        if count > 0 {
             statusItem.length = NSStatusItem.variableLength
-            statusItem.button?.title = " \(unreadCount)"
+            statusItem.button?.title = " \(count)"
         } else {
             statusItem.length = NSStatusItem.squareLength
             statusItem.button?.title = ""
