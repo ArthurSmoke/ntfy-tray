@@ -6,7 +6,5 @@
     <false/>
     <key>com.apple.security.personal-information.notifications</key>
     <true/>
-    <key>com.apple.developer.login-items-api</key>
-    <true/>
 </dict>
 </plist>
