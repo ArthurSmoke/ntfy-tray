@@ -68,6 +68,7 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
         
         guard let url = buildWebSocketURL() else {
             DispatchQueue.main.async { [weak self] in
+                self?.isConnecting = false
                 self?.connectionError = "Invalid server URL or no topics configured"
             }
             return
@@ -240,6 +241,7 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
             self?.reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
                 guard let self = self else { return }
                 self.isReconnecting = false
+                self.isConnecting = false
                 if !self.isManuallyDisconnected && self.settingsManager.autoReconnect {
                     self.connect()
                 }
@@ -248,7 +250,10 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
     }
     
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
-        guard !isManuallyDisconnected else { return }
+        guard !isManuallyDisconnected else {
+            logger.log("WebSocket opened but manually disconnected, ignoring")
+            return
+        }
         
         logger.log("WebSocket opened with protocol: \(`protocol` ?? "none")")
         DispatchQueue.main.async { [weak self] in
@@ -259,7 +264,10 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
     }
     
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        guard !isManuallyDisconnected else { return }
+        guard !isManuallyDisconnected else {
+            logger.log("WebSocket closed but manually disconnected, ignoring")
+            return
+        }
         
         let reasonString = reason.flatMap { String(data: $0, encoding: .utf8) } ?? "none"
         logger.log("WebSocket closed with code: \(closeCode), reason: \(reasonString)")
@@ -271,7 +279,10 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
     }
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        guard !isManuallyDisconnected else { return }
+        guard !isManuallyDisconnected else {
+            logger.log("WebSocket task completed but manually disconnected, ignoring")
+            return
+        }
         
         if let error = error {
             logger.log("WebSocket task completed with error: \(error)")
