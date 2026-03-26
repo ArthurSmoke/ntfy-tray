@@ -201,7 +201,7 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
     private func startKeepaliveTimer() {
         keepaliveTimer?.invalidate()
         DispatchQueue.main.async { [weak self] in
-            self?.keepaliveTimer = Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { _ in
+            self?.keepaliveTimer = Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { [weak self] _ in
                 self?.sendPing()
             }
         }
@@ -237,7 +237,7 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
         logger.log("Scheduling reconnect attempt \(reconnectAttempts) in \(delay)s")
         
         DispatchQueue.main.async { [weak self] in
-            self?.reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { _ in
+            self?.reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
                 guard let self = self else { return }
                 self.isReconnecting = false
                 if !self.isManuallyDisconnected && self.settingsManager.autoReconnect {
