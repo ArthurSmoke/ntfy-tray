@@ -48,11 +48,21 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
         super.init()
         delegateQueue.maxConcurrentOperationCount = 1
         delegateQueue.name = "com.ntfytray.websocket"
+        urlSession = createURLSession()
+    }
+    
+    private func createURLSession() -> URLSession {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 0
         config.waitsForConnectivity = true
-        urlSession = URLSession(configuration: config, delegate: self, delegateQueue: delegateQueue)
+        return URLSession(configuration: config, delegate: self, delegateQueue: delegateQueue)
+    }
+    
+    private func recreateSession() {
+        logger.log("Recreating URLSession due to connection failure")
+        urlSession?.invalidateAndCancel()
+        urlSession = createURLSession()
     }
     
     func connect() {
@@ -147,7 +157,7 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
                     self?.isConnected = false
                     self?.connectionError = error.localizedDescription
                 }
-                self.scheduleReconnect()
+                self.scheduleReconnect(error: error)
             }
         }
     }
@@ -221,10 +231,17 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
         startKeepaliveTimer()
     }
     
-    private func scheduleReconnect() {
+    private func scheduleReconnect(error: Error? = nil) {
         guard !isManuallyDisconnected else { return }
         guard !isReconnecting else { return }
         guard !isConnecting else { return }
+        
+        // 处理服务器拒绝错误（-1011），需要重建 URLSession
+        if let urlError = error as? URLError, urlError.code == .badServerResponse {
+            logger.log("Server rejected connection (\(urlError.code.rawValue)), recreating session...")
+            recreateSession()
+        }
+        
         isReconnecting = true
         
         DispatchQueue.main.async { [weak self] in
@@ -291,7 +308,7 @@ class NtfyClient: NSObject, ObservableObject, URLSessionWebSocketDelegate {
                 self?.isConnecting = false
                 self?.connectionError = error.localizedDescription
             }
-            scheduleReconnect()
+            scheduleReconnect(error: error)
         } else {
             logger.log("WebSocket task completed without error")
         }
