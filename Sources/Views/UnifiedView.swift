@@ -355,7 +355,6 @@ struct ModernMessageRow: View {
             if let messageText = message.message {
                 Text(messageText)
                     .font(.system(size: 13))
-                    .lineLimit(3)
                     .lineSpacing(1.5)
             }
             
